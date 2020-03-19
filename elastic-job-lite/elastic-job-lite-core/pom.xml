@@ -7,7 +7,8 @@
     </parent>
     <artifactId>elastic-job-lite-core</artifactId>
     <name>${project.artifactId}</name>
-    
+    <version>2.1.6</version>
+
     <dependencies>
         <dependency>
             <groupId>com.dangdang</groupId>
@@ -55,4 +56,19 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <!-- 发布配置 -->
+    <distributionManagement>
+        <repository>
+            <!-- Repository ID -->
+            <id>releases</id>
+            <name>Releases</name>
+            <url>http://nexus.huobidev.com:8081/repository/maven-releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <name>Snapshots</name>
+            <url>http://nexus.huobidev.com:8081/repository/maven-snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>

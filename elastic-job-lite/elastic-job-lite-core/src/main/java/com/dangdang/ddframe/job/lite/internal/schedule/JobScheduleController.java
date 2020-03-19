@@ -1,38 +1,11 @@
-/*
- * Copyright 1999-2015 dangdang.com.
- * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * </p>
- */
-
 package com.dangdang.ddframe.job.lite.internal.schedule;
 
 import com.dangdang.ddframe.job.exception.JobSystemException;
 import lombok.RequiredArgsConstructor;
-import org.quartz.CronScheduleBuilder;
-import org.quartz.CronTrigger;
-import org.quartz.JobDetail;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
-import org.quartz.Trigger;
-import org.quartz.TriggerBuilder;
-import org.quartz.TriggerKey;
+import org.quartz.*;
 
-/**
- * 作业调度控制器.
- * 
- * @author zhangliang
- */
+import java.util.Date;
+
 @RequiredArgsConstructor
 public final class JobScheduleController {
     
@@ -41,7 +14,14 @@ public final class JobScheduleController {
     private final JobDetail jobDetail;
     
     private final String triggerIdentity;
-    
+
+    /**
+     * 毫秒级别作业 配置作业调度表达式的分隔符
+	 * 分号前面是： initialDelay 初始化等待时间
+	 * 分号后面是： period/delay 间隔调度的毫秒数
+     */
+    private static final String MILLISECOND_JOB_EXPRESSION_SEPARATOR = ";";
+
     /**
      * 调度作业.
      * 
@@ -50,7 +30,7 @@ public final class JobScheduleController {
     public void scheduleJob(final String cron) {
         try {
             if (!scheduler.checkExists(jobDetail.getKey())) {
-                scheduler.scheduleJob(jobDetail, createTrigger(cron));
+                scheduler.scheduleJob(jobDetail, isSimpleTriggerJob(cron) ? createSimpleTrigger(cron) : createTrigger(cron));
             }
             scheduler.start();
         } catch (final SchedulerException ex) {
@@ -64,6 +44,19 @@ public final class JobScheduleController {
      * @param cron CRON表达式
      */
     public synchronized void rescheduleJob(final String cron) {
+        if (isSimpleTriggerJob(cron)) {
+            rescheduleSimpleTriggerJob(cron);
+        } else {
+            rescheduleCronTriggerJob(cron);
+        }
+    }
+
+    /**
+     * 重新调度作业.
+     *
+     * @param cron CRON表达式
+     */
+    public void rescheduleCronTriggerJob(final String cron) {
         try {
             CronTrigger trigger = (CronTrigger) scheduler.getTrigger(TriggerKey.triggerKey(triggerIdentity));
             if (!scheduler.isShutdown() && null != trigger && !cron.equals(trigger.getCronExpression())) {
@@ -73,11 +66,32 @@ public final class JobScheduleController {
             throw new JobSystemException(ex);
         }
     }
-    
+
+    /**
+     * 重新调度作业. 毫秒级别作业
+     *
+     * @param cron CRON表达式
+     */
+    public void rescheduleSimpleTriggerJob(final String cron) {
+        try {
+            SimpleTrigger trigger = (SimpleTrigger) scheduler.getTrigger(TriggerKey.triggerKey(triggerIdentity));
+            if (!scheduler.isShutdown() && null != trigger && !cron.equals(trigger.getStartTime().getTime() + MILLISECOND_JOB_EXPRESSION_SEPARATOR + trigger.getRepeatInterval())) {
+                scheduler.rescheduleJob(TriggerKey.triggerKey(triggerIdentity), createSimpleTrigger(cron));
+            }
+        } catch (final SchedulerException ex) {
+            throw new JobSystemException(ex);
+        }
+    }
+
     private CronTrigger createTrigger(final String cron) {
         return TriggerBuilder.newTrigger().withIdentity(triggerIdentity).withSchedule(CronScheduleBuilder.cronSchedule(cron).withMisfireHandlingInstructionDoNothing()).build();
     }
-    
+
+    private SimpleTrigger createSimpleTrigger(final String cron) {
+        String[] arr = cron.split(MILLISECOND_JOB_EXPRESSION_SEPARATOR);
+        return TriggerBuilder.newTrigger().startAt(new Date(System.currentTimeMillis() + Long.parseLong(arr[0]))).withIdentity(triggerIdentity).withSchedule(SimpleScheduleBuilder.simpleSchedule().withIntervalInMilliseconds(Long.parseLong(arr[1])).repeatForever().withMisfireHandlingInstructionNowWithExistingCount()).build();
+    }
+
     /**
      * 判断作业是否暂停.
      * 
@@ -141,5 +155,14 @@ public final class JobScheduleController {
         } catch (final SchedulerException ex) {
             throw new JobSystemException(ex);
         }
+    }
+
+    /**
+     * 判断是否是毫秒级别的作业
+     * @param cron
+     * @return
+     */
+    private boolean isSimpleTriggerJob(final String cron) {
+        return cron.contains(MILLISECOND_JOB_EXPRESSION_SEPARATOR);
     }
 }
