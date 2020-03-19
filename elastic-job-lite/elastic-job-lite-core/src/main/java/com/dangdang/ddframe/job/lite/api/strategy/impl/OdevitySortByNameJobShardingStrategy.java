@@ -43,11 +43,11 @@ public final class OdevitySortByNameJobShardingStrategy implements JobShardingSt
     private AverageAllocationJobShardingStrategy averageAllocationJobShardingStrategy = new AverageAllocationJobShardingStrategy();
     
     @Override
-    public Map<JobInstance, List<Integer>> sharding(final List<JobInstance> jobInstances, final String jobName, final int shardingTotalCount) {
+    public Map<JobInstance, List<Integer>> sharding(final List<JobInstance> jobInstances, final List<String> jobNames, final String jobName, final int shardingTotalCount) {
         long jobNameHash = jobName.hashCode();
         if (0 == jobNameHash % 2) {
             Collections.reverse(jobInstances);
         }
-        return averageAllocationJobShardingStrategy.sharding(jobInstances, jobName, shardingTotalCount);
+        return averageAllocationJobShardingStrategy.sharding(jobInstances, jobNames, jobName, shardingTotalCount);
     }
 }

@@ -34,8 +34,8 @@ public final class RotateServerByNameJobShardingStrategy implements JobShardingS
     private AverageAllocationJobShardingStrategy averageAllocationJobShardingStrategy = new AverageAllocationJobShardingStrategy();
     
     @Override
-    public Map<JobInstance, List<Integer>> sharding(final List<JobInstance> jobInstances, final String jobName, final int shardingTotalCount) {
-        return averageAllocationJobShardingStrategy.sharding(rotateServerList(jobInstances, jobName), jobName, shardingTotalCount);
+    public Map<JobInstance, List<Integer>> sharding(final List<JobInstance> jobInstances, final List<String> jobNames, final String jobName, final int shardingTotalCount) {
+        return averageAllocationJobShardingStrategy.sharding(rotateServerList(jobInstances, jobName), jobNames, jobName, shardingTotalCount);
     }
     
     private List<JobInstance> rotateServerList(final List<JobInstance> shardingUnits, final String jobName) {

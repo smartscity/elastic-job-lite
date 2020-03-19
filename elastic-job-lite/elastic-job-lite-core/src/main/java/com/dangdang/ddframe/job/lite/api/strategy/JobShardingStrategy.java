@@ -35,5 +35,5 @@ public interface JobShardingStrategy {
      * @param shardingTotalCount 分片总数
      * @return 分片结果
      */
-    Map<JobInstance, List<Integer>> sharding(List<JobInstance> jobInstances, String jobName, int shardingTotalCount);
+	Map<JobInstance, List<Integer>> sharding(List<JobInstance> jobInstances, List<String> jobNames, String jobName, int shardingTotalCount);
 }

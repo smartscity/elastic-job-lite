@@ -40,9 +40,9 @@ import java.util.Map;
  * @author zhangliang
  */
 public final class AverageAllocationJobShardingStrategy implements JobShardingStrategy {
-    
-    @Override
-    public Map<JobInstance, List<Integer>> sharding(final List<JobInstance> jobInstances, final String jobName, final int shardingTotalCount) {
+
+	@Override
+    public Map<JobInstance, List<Integer>> sharding(final List<JobInstance> jobInstances, final List<String> jobNames, final String jobName, final int shardingTotalCount) {
         if (jobInstances.isEmpty()) {
             return Collections.emptyMap();
         }

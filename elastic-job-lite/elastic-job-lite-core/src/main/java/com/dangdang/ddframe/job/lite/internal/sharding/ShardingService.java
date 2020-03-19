@@ -64,19 +64,27 @@ public final class ShardingService {
     private final ExecutionService executionService;
 
     private final JobNodePath jobNodePath;
-    
-    public ShardingService(final CoordinatorRegistryCenter regCenter, final String jobName) {
-        this.jobName = jobName;
-        jobNodeStorage = new JobNodeStorage(regCenter, jobName);
-        leaderService = new LeaderService(regCenter, jobName);
-        configService = new ConfigurationService(regCenter, jobName);
-        instanceService = new InstanceService(regCenter, jobName);
-        serverService = new ServerService(regCenter, jobName);
-        executionService = new ExecutionService(regCenter, jobName);
-        jobNodePath = new JobNodePath(jobName);
-    }
-    
-    /**
+
+
+	private final CoordinatorRegistryCenter regCenter;
+
+	public ShardingService(final CoordinatorRegistryCenter regCenter, final String jobName) {
+		this.jobName = jobName;
+		jobNodeStorage = new JobNodeStorage(regCenter, jobName);
+		leaderService = new LeaderService(regCenter, jobName);
+		configService = new ConfigurationService(regCenter, jobName);
+		instanceService = new InstanceService(regCenter, jobName);
+		serverService = new ServerService(regCenter, jobName);
+		executionService = new ExecutionService(regCenter, jobName);
+		jobNodePath = new JobNodePath(jobName);
+		this.regCenter = regCenter;
+	}
+
+	public List<String> getAllJobsBriefInfo() {
+		return regCenter.getChildrenKeys("/");
+	}
+
+	/**
      * 设置需要重新分片的标记.
      */
     public void setReshardingFlag() {
@@ -115,7 +123,7 @@ public final class ShardingService {
         jobNodeStorage.fillEphemeralJobNode(ShardingNode.PROCESSING, "");
         resetShardingInfo(shardingTotalCount);
         JobShardingStrategy jobShardingStrategy = JobShardingStrategyFactory.getStrategy(liteJobConfig.getJobShardingStrategyClass());
-        jobNodeStorage.executeInTransaction(new PersistShardingInfoTransactionExecutionCallback(jobShardingStrategy.sharding(availableJobInstances, jobName, shardingTotalCount)));
+        jobNodeStorage.executeInTransaction(new PersistShardingInfoTransactionExecutionCallback(jobShardingStrategy.sharding(availableJobInstances, getAllJobsBriefInfo(), jobName, shardingTotalCount)));
         log.debug("Job '{}' sharding complete.", jobName);
     }
     
