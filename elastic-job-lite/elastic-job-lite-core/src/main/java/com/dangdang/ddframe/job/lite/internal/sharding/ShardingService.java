@@ -22,6 +22,7 @@ import com.dangdang.ddframe.job.lite.api.strategy.JobShardingStrategy;
 import com.dangdang.ddframe.job.lite.api.strategy.JobShardingStrategyFactory;
 import com.dangdang.ddframe.job.lite.config.LiteJobConfiguration;
 import com.dangdang.ddframe.job.lite.internal.config.ConfigurationService;
+import com.dangdang.ddframe.job.lite.internal.config.LiteJobConfigurationGsonFactory;
 import com.dangdang.ddframe.job.lite.internal.election.LeaderService;
 import com.dangdang.ddframe.job.lite.internal.instance.InstanceNode;
 import com.dangdang.ddframe.job.lite.internal.instance.InstanceService;
@@ -36,10 +37,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.api.transaction.CuratorTransactionFinal;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 作业分片服务.
@@ -80,8 +78,25 @@ public final class ShardingService {
 		this.regCenter = regCenter;
 	}
 
-	public List<String> getAllJobsBriefInfo() {
-		return regCenter.getChildrenKeys("/");
+	public List<LiteJobConfiguration> getAllJobsBriefInfo() {
+		List<String> jobNames = regCenter.getChildrenKeys("/");
+		List<LiteJobConfiguration> result = new ArrayList<>(jobNames.size());
+		for (String each : jobNames) {
+			LiteJobConfiguration jobBriefInfo = getLiteJobConfiguration(each);
+			if (null != jobBriefInfo) {
+				result.add(jobBriefInfo);
+			}
+		}
+		return result;
+	}
+
+	public LiteJobConfiguration getLiteJobConfiguration(final String jobName) {
+		JobNodePath jobNodePath = new JobNodePath(jobName);
+		String liteJobConfigJson = regCenter.get(jobNodePath.getConfigNodePath());
+		if (null == liteJobConfigJson) {
+			return null;
+		}
+		return LiteJobConfigurationGsonFactory.fromJson(liteJobConfigJson);
 	}
 
 	/**

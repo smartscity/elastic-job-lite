@@ -19,6 +19,7 @@ package com.dangdang.ddframe.job.lite.api.strategy.impl;
 
 import com.dangdang.ddframe.job.lite.api.strategy.JobInstance;
 import com.dangdang.ddframe.job.lite.api.strategy.JobShardingStrategy;
+import com.dangdang.ddframe.job.lite.config.LiteJobConfiguration;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,7 +43,7 @@ import java.util.Map;
 public final class AverageAllocationJobShardingStrategy implements JobShardingStrategy {
 
 	@Override
-    public Map<JobInstance, List<Integer>> sharding(final List<JobInstance> jobInstances, final List<String> jobNames, final String jobName, final int shardingTotalCount) {
+    public Map<JobInstance, List<Integer>> sharding(final List<JobInstance> jobInstances, final List<LiteJobConfiguration> jobNames, final String jobName, final int shardingTotalCount) {
         if (jobInstances.isEmpty()) {
             return Collections.emptyMap();
         }

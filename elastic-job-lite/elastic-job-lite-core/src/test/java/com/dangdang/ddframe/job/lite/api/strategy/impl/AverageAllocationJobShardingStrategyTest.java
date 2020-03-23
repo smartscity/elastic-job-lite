@@ -19,6 +19,7 @@ package com.dangdang.ddframe.job.lite.api.strategy.impl;
 
 import com.dangdang.ddframe.job.lite.api.strategy.JobInstance;
 import com.dangdang.ddframe.job.lite.api.strategy.JobShardingStrategy;
+import com.dangdang.ddframe.job.lite.config.LiteJobConfiguration;
 import org.junit.Test;
 
 import java.util.*;
@@ -30,7 +31,7 @@ public final class AverageAllocationJobShardingStrategyTest {
     
     private final JobShardingStrategy jobShardingStrategy = new AverageAllocationJobShardingStrategy();
 
-	private final List<String> jobNames = new ArrayList<>();
+	private final List<LiteJobConfiguration> jobNames = new ArrayList<>();
     
     @Test
     public void shardingForZeroServer() {
